@@ -1,0 +1,798 @@
+<![CDATA[<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Golden Eleven • Tactical Blueprint</title>
+  <style>
+    :root {
+      --bg-primary: #0B0F19;
+      --bg-secondary: #111827;
+      --bg-panel: #0F172A;
+      --gold: #D4AF37;
+      --gold-bright: #F59E0B;
+      --green: #059669;
+      --text-white: #FFFFFF;
+      --text-gray: #9CA3AF;
+      --border-gold: rgba(212, 175, 55, 0.3);
+      --card-bg: #1E293B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-white);
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #app {
+      width: 100%;
+      height: 100dvh;
+      max-width: 1600px;
+      max-height: 100dvh;
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 60px rgba(0,0,0,0.9);
+    }
+
+    .selector-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 1.5rem;
+      background: radial-gradient(ellipse at center, #1a2332 0%, #0B0F19 70%);
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .manager-logo-container { margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; }
+
+    .manager-logo {
+      width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold);
+      object-fit: cover; box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .manager-logo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+    .manager-logo-placeholder {
+      width: 100%; height: 100%; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: var(--gold); background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    }
+
+    @keyframes float { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
+
+    .main-title {
+      font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; text-transform: uppercase;
+      letter-spacing: 2px; background: linear-gradient(180deg, #FFE4A0 0%, #D4AF37 40%, #B8860B 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 0.3rem; filter: drop-shadow(0 0 20px rgba(212,175,55,0.4));
+    }
+
+    .subtitle { color: var(--text-gray); font-size: 1rem; text-align: center; max-width: 600px; margin-bottom: 2rem; line-height: 1.6; }
+
+    .position-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; width: 100%; max-width: 800px; padding: 0 0.5rem; }
+
+    .pos-btn {
+      background: var(--card-bg); border: 1px solid var(--border-gold); color: var(--text-white);
+      padding: 0.9rem 0.8rem; border-radius: 0.8rem; font-weight: 600; font-size: 0.8rem;
+      cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem;
+      backdrop-filter: blur(10px); position: relative; overflow: hidden;
+    }
+
+    .pos-btn::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .pos-btn:hover::before { left: 100%; }
+
+    .pos-btn:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); background: #1f2a3a; }
+    .pos-btn:active { transform: translateY(-1px); }
+
+    .pos-icon { font-size: 1.2rem; color: var(--gold); min-width: 22px; text-align: center; }
+    .pos-label { font-size: 0.8rem; line-height: 1.3; }
+    .pos-number { font-size: 0.65rem; color: var(--gold); opacity: 0.8; }
+
+    .dashboard-view { display: none; height: 100%; width: 100%; }
+    .dashboard-view.active { display: flex; }
+    .selector-view.hidden { display: none; }
+
+    .left-panel {
+      width: 380px; min-width: 380px; background: var(--bg-panel);
+      border-right: 1px solid var(--border-gold); display: flex; flex-direction: column;
+      padding: 1rem; gap: 1rem; overflow-y: auto; z-index: 10;
+    }
+
+    .panel-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem; }
+
+    .back-btn {
+      background: transparent; border: 1px solid var(--text-gray); color: var(--text-gray);
+      padding: 0.4rem 0.8rem; border-radius: 2rem; cursor: pointer; font-size: 0.8rem;
+      transition: all 0.3s; display: flex; align-items: center; gap: 0.4rem;
+    }
+
+    .back-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    .manager-badge {
+      background: linear-gradient(135deg, #1a1a2e, #0f3460); border: 1px solid var(--gold);
+      color: var(--gold-bright); padding: 0.3rem 0.7rem; border-radius: 2rem;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    .role-display { display: flex; align-items: center; gap: 0.8rem; background: var(--card-bg); padding: 0.8rem 1.2rem; border-radius: 1rem; border-left: 4px solid var(--gold); }
+    .role-icon-large { font-size: 2rem; color: var(--gold); }
+    .role-info h3 { font-size: 1.3rem; color: var(--gold-bright); margin-bottom: 0.1rem; }
+    .role-info span { font-size: 0.75rem; color: var(--text-gray); }
+
+    .instruction-card { background: var(--card-bg); border-radius: 1rem; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); }
+    .instruction-card h4 { color: var(--gold); margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+    .instruction-text { color: var(--text-white); font-size: 0.85rem; line-height: 1.5; }
+
+    .impact-box { background: linear-gradient(135deg, #1a2a1a, #0f1f0f); border: 1px solid var(--gold); border-radius: 1rem; padding: 0.8rem 1rem; transition: all 0.5s ease; }
+    .impact-box.highlight { box-shadow: 0 0 25px rgba(212,175,55,0.3), inset 0 0 20px rgba(212,175,55,0.05); }
+    .impact-box h4 { color: var(--gold); font-size: 0.8rem; margin-bottom: 0.4rem; }
+    .impact-text { color: #E0E7B0; font-size: 0.85rem; font-weight: 500; }
+
+    .phase-section h4 { color: var(--text-gray); font-size: 0.8rem; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+    .phase-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    .phase-btn {
+      background: var(--card-bg); border: 1px solid #475569; color: #CBD5E1;
+      padding: 0.6rem; border-radius: 0.7rem; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; transition: all 0.3s; text-align: center;
+    }
+
+    .phase-btn:hover { border-color: var(--gold); }
+    .phase-btn.active { background: var(--gold); border-color: var(--gold); color: #0B0F19; font-weight: 700; box-shadow: 0 0 20px rgba(212,175,55,0.5); }
+
+    .global-mode-btn {
+      grid-column: 1 / -1; background: transparent; border: 2px dashed var(--gold);
+      color: var(--gold); padding: 0.7rem; border-radius: 0.8rem; font-weight: 700;
+      font-size: 0.85rem; cursor: pointer; transition: all 0.3s; margin-top: 0.2rem;
+    }
+
+    .global-mode-btn:hover { background: rgba(212,175,55,0.1); }
+    .global-mode-btn.active { background: var(--gold); color: #0B0F19; border-style: solid; }
+
+    .right-panel { flex: 1; background: #0a0f14; display: flex; align-items: center; justify-content: center; position: relative; padding: 0.5rem; }
+
+    canvas { width: 100%; height: 100%; border-radius: 0.8rem; background: #0a1a0a; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
+
+    .legend {
+      position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75);
+      padding: 0.5rem 0.7rem; border-radius: 0.6rem; font-size: 0.65rem;
+      color: var(--text-gray); display: flex; flex-direction: column; gap: 0.2rem;
+      pointer-events: none; z-index: 5;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .legend-dot.gold { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .legend-dot.white { background: #CBD5E1; }
+    .legend-dot.ghost { background: rgba(255,255,255,0.2); border: 1px dashed #555; }
+
+    @media (max-width: 820px) {
+      .dashboard-view.active { flex-direction: column; }
+      .left-panel { width: 100%; min-width: 100%; max-height: 42%; padding: 0.7rem; gap: 0.6rem; }
+      .position-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .back-btn { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+      .role-display { padding: 0.5rem 0.8rem; }
+      .role-icon-large { font-size: 1.5rem; }
+      .role-info h3 { font-size: 1.1rem; }
+      .instruction-card { padding: 0.7rem; }
+      .instruction-text { font-size: 0.8rem; }
+      .phase-btn { padding: 0.5rem; font-size: 0.7rem; }
+      .main-title { font-size: clamp(2rem, 5vw, 3.5rem); }
+      .right-panel { padding: 0.3rem; }
+      .legend { bottom: 6px; right: 6px; padding: 0.4rem 0.5rem; font-size: 0.55rem; }
+    }
+
+    @media (max-width: 500px) {
+      .position-grid { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+      .pos-btn { padding: 0.6rem 0.4rem; font-size: 0.65rem; }
+      .pos-icon { font-size: 0.9rem; min-width: 18px; }
+      .left-panel { max-height: 38%; }
+      .manager-logo { width: 70px; height: 70px; }
+      .main-title { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+      .subtitle { font-size: 0.8rem; margin-bottom: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="selectorView" class="selector-view">
+      <div class="manager-logo-container">
+        <div class="manager-logo" id="managerLogo">
+          <img src="managerlogo.jpg" alt="Manager" onerror="this.parentElement.innerHTML='<div class=\'manager-logo-placeholder\'>👔</div>'">
+        </div>
+      </div>
+      <h1 class="main-title">GOLDEN ELEVEN</h1>
+      <p class="subtitle">Coherenciola's System — Select your role to begin</p>
+      <div class="position-grid" id="positionGrid"></div>
+    </div>
+
+    <div id="dashboardView" class="dashboard-view">
+      <div class="left-panel">
+        <div class="panel-header">
+          <button id="backBtn" class="back-btn">← Back</button>
+          <span class="manager-badge">👔 Coherenciola</span>
+        </div>
+        <div class="role-display" id="roleDisplay">
+          <div class="role-icon-large" id="roleIconLarge">🧤</div>
+          <div class="role-info">
+            <h3 id="roleTitle">Goalkeeper</h3>
+            <span id="roleSubtitle">GK</span>
+          </div>
+        </div>
+        <div class="instruction-card">
+          <h4>📋 Tactical Instruction</h4>
+          <p class="instruction-text" id="instructionText">Select a phase to view instructions.</p>
+        </div>
+        <div class="impact-box" id="impactBox">
+          <h4>🎯 System Impact</h4>
+          <p class="impact-text" id="impactText">System impact analysis will appear here.</p>
+        </div>
+        <div class="phase-section">
+          <h4>Phase</h4>
+          <div class="phase-toggles" id="phaseToggles">
+            <button class="phase-btn active" data-phase="build">🏗️ Build-Up</button>
+            <button class="phase-btn" data-phase="press">⚡ Press</button>
+            <button class="phase-btn" data-phase="defend">🛡️ Defend</button>
+            <button class="phase-btn" data-phase="attack">🔥 Attack</button>
+            <button id="globalModeBtn" class="global-mode-btn">🌐 Full Team Engine</button>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <canvas id="pitchCanvas"></canvas>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot gold"></span> You</div>
+          <div class="legend-item"><span class="legend-dot white"></span> Teammate</div>
+          <div class="legend-item"><span class="legend-dot ghost"></span> Opponent</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    'use strict';
+
+    const positions = [
+      {id:'GK',label:'Goalkeeper',number:'GK',icon:'🧤'},
+      {id:'CB-L',label:'CB (Left)',number:'CB-L',icon:'🛡️'},
+      {id:'CB-R',label:'CB (Right)',number:'CB-R',icon:'🛡️'},
+      {id:'LB',label:'LB (Inverted)',number:'LB',icon:'↗️'},
+      {id:'RB',label:'RB (Inverted)',number:'RB',icon:'↖️'},
+      {id:'CDM',label:'DM (#6)',number:'#6',icon:'⚓'},
+      {id:'AM-L',label:'AM (#10 L)',number:'#10L',icon:'🧠'},
+      {id:'AM-R',label:'AM (#10 R)',number:'#10R',icon:'🧠'},
+      {id:'LW',label:'LW',number:'LW',icon:'💨'},
+      {id:'RW',label:'RW',number:'RW',icon:'💨'},
+      {id:'F9',label:'False 9',number:'F9',icon:'🎩'}
+    ];
+
+    let currentRole='GK', activePhase='build', globalModeActive=false;
+    let animFrame=null, nodeAnimState={}, opponentAnimState={};
+    let ballPos={x:350,z:0.85,y:0};
+    let isAnimating=false, ballTrail=[], opponentSway=0;
+
+    const sel=id=>document.getElementById(id);
+    const selectorView=sel('selectorView'), dashboardView=sel('dashboardView');
+    const positionGrid=sel('positionGrid'), backBtn=sel('backBtn');
+    const roleIconLarge=sel('roleIconLarge'), roleTitle=sel('roleTitle'), roleSubtitle=sel('roleSubtitle');
+    const instructionText=sel('instructionText'), impactText=sel('impactText'), impactBox=sel('impactBox');
+    const phaseToggles=sel('phaseToggles'), globalModeBtn=sel('globalModeBtn');
+    const canvas=sel('pitchCanvas'), ctx=canvas.getContext('2d');
+
+    // ===== PERSPECTIVE PITCH =====
+    // Camera behind opponent goal, looking at OUR team attacking toward us
+    // z=0 = near (viewer / opponent goal), z=1 = far (our defensive end)
+    // Ball moves FROM our side (high z) → TOWARD opponent goal (low z)
+    // ZOOMED IN: pitch fills 95% width at bottom, 55% at top
+    const PT = { topY:0.01, botY:0.96, topW:0.55, botW:0.95 };
+
+    function getPX(xRatio,yRatio,w){
+      const width = (w*PT.topW)+(w*(PT.botW-PT.topW))*yRatio;
+      return (w/2-width/2) + xRatio*width;
+    }
+    function getPY(yRatio,h){ return h*PT.topY + (h*(PT.botY-PT.topY))*yRatio; }
+    function getPW(yRatio,w){ return (w*PT.topW)+(w*(PT.botW-PT.topW))*yRatio; }
+
+    // Map our 3D coords (x, z) to screen (sx, sy, radiusScale)
+    function proj(x,z,w,h){
+      const yRatio = 1 - z; // z=0 → bottom, z=1 → top
+      const sx = getPX(x/700, yRatio, w);
+      const sy = getPY(yRatio, h);
+      const scale = 0.15 + 0.85 * (1 - z);
+      return { sx, sy, scale };
+    }
+
+    // ===== COORDINATES =====
+    // Our team: z=0.05 (almost at goal) to z=0.85 (our defensive end)
+    const nodePositions = {
+      GK:{x:350,z:0.82}, 'CB-L':{x:260,z:0.70}, 'CB-R':{x:440,z:0.70},
+      LB:{x:100,z:0.60}, RB:{x:600,z:0.60},
+      CDM:{x:350,z:0.48}, 'AM-L':{x:220,z:0.30}, 'AM-R':{x:480,z:0.30},
+      LW:{x:70,z:0.22}, RW:{x:630,z:0.22}, F9:{x:350,z:0.15}
+    };
+
+    const opponentPositions = {
+      'OPP-ST':{x:350,z:0.22}, 'OPP-LW':{x:130,z:0.28}, 'OPP-RW':{x:570,z:0.28},
+      'OPP-CM1':{x:280,z:0.38}, 'OPP-CM2':{x:420,z:0.38},
+      'OPP-LB':{x:160,z:0.52}, 'OPP-RB':{x:540,z:0.52},
+      'OPP-CB1':{x:300,z:0.62}, 'OPP-CB2':{x:400,z:0.62}, 'OPP-GK':{x:350,z:0.75}
+    };
+    const opponentKeys=Object.keys(opponentPositions);
+
+    // ===== ANIMATION SEQUENCES =====
+    // Ball starts at OUR GOAL (z~0.85) and moves FORWARD (z decreasing) toward opponent goal
+    // This means the ball moves from top of screen toward bottom (toward viewer)
+    const bUp=[
+      {time:0,ball:{x:350,z:0.85},nodes:{},impact:'Build-up: GK in possession. Ball at our goal.'},
+      {time:800,ball:{x:300,z:0.72},nodes:{GK:{x:350,z:0.82},'CB-L':{x:280,z:0.68},'CB-R':{x:420,z:0.68}},impact:'GK → CB-L. Ball moving forward from our end.'},
+      {time:1600,ball:{x:400,z:0.68},nodes:{'CB-L':{x:280,z:0.66},'CB-R':{x:420,z:0.66}},impact:'Switching play. Ball advances past our box.'},
+      {time:2400,ball:{x:420,z:0.60},nodes:{'CB-R':{x:420,z:0.60},RB:{x:580,z:0.52}},impact:'RB pushes up. Ball now in front of our defense.'},
+      {time:3200,ball:{x:550,z:0.50},nodes:{RB:{x:550,z:0.50},'CB-R':{x:420,z:0.68}},impact:'Line-breaking pass! Ball ahead of midfield.'},
+      {time:4000,ball:{x:500,z:0.42},nodes:{RB:{x:500,z:0.42},'OPP-CM2':{x:470,z:0.38}},impact:'RB attracts defender. Ball in dangerous area!'},
+      {time:4800,ball:{x:380,z:0.35},nodes:{CDM:{x:380,z:0.35},RB:{x:500,z:0.42}},impact:'#6 receives. Ball well ahead of the team! 🎯'}
+    ];
+
+    const pSeq=[
+      {time:0,ball:{x:450,z:0.30},nodes:{},impact:'🔄 Turnover! Immediate counter-press!'},
+      {time:500,ball:{x:460,z:0.32},nodes:{F9:{x:440,z:0.20},'AM-L':{x:400,z:0.28},'AM-R':{x:480,z:0.28},LW:{x:410,z:0.25},RW:{x:490,z:0.25}},impact:'5 players converge. Ball ahead of press!'},
+      {time:1500,ball:{x:470,z:0.33},nodes:{F9:{x:464,z:0.23},'AM-L':{x:448,z:0.30},'AM-R':{x:490,z:0.30},LW:{x:455,z:0.27},RW:{x:489,z:0.27}},impact:'⚡ Suffocating! No time on ball.'},
+      {time:3000,ball:{x:480,z:0.34},nodes:{F9:{x:472,z:0.25},'AM-L':{x:460,z:0.32},'AM-R':{x:494,z:0.32}},impact:'⚡ Opponent forced long! Press worked!'},
+      {time:4000,ball:{x:350,z:0.45},nodes:{},impact:'Retreat to 5-back shape.'},
+      {time:5000,ball:{x:350,z:0.50},nodes:{CDM:{x:350,z:0.48},LB:{x:120,z:0.55},RB:{x:580,z:0.55},'CB-L':{x:260,z:0.62},'CB-R':{x:440,z:0.62},GK:{x:350,z:0.78}},impact:'✅ Compact block set. Ball in front of defense.'}
+    ];
+
+    const dSeq=[
+      {time:0,ball:{x:350,z:0.50},nodes:{},impact:'🛡️ 5-back block. Ball ahead.'},
+      {time:1500,ball:{x:300,z:0.45},nodes:{CDM:{x:350,z:0.48},LB:{x:120,z:0.55},RB:{x:580,z:0.55},'CB-L':{x:260,z:0.62},'CB-R':{x:440,z:0.62}},impact:'Shift left. Ball stays in front.'},
+      {time:3000,ball:{x:450,z:0.42},nodes:{CDM:{x:400,z:0.48},LB:{x:170,z:0.55},RB:{x:530,z:0.55},'CB-L':{x:310,z:0.62},'CB-R':{x:390,z:0.62}},impact:'Shift right. Denying penetration.'},
+      {time:4500,ball:{x:350,z:0.38},nodes:{CDM:{x:350,z:0.44},'AM-L':{x:260,z:0.32},'AM-R':{x:440,z:0.32}},impact:'Midfield screens. Passing lanes blocked.'}
+    ];
+
+    const aSeq=[
+      {time:0,ball:{x:380,z:0.38},nodes:{},impact:'🔥 Counter-attack! Ball won ahead!'},
+      {time:600,ball:{x:380,z:0.30},nodes:{CDM:{x:370,z:0.36},F9:{x:340,z:0.18}},impact:'#6 → False 9. Ball surging forward!'},
+      {time:1200,ball:{x:200,z:0.22},nodes:{F9:{x:290,z:0.16},LW:{x:80,z:0.14},'AM-L':{x:220,z:0.24},'AM-R':{x:450,z:0.24}},impact:'F9 sends LW through! Ball in attacking third!'},
+      {time:1800,ball:{x:120,z:0.18},nodes:{LW:{x:60,z:0.13},F9:{x:280,z:0.12},'AM-L':{x:350,z:0.15},'AM-R':{x:420,z:0.15},LB:{x:120,z:0.32}},impact:'LW 1v1! Ball at the byline!'},
+      {time:2400,ball:{x:80,z:0.12},nodes:{LW:{x:50,z:0.10},F9:{x:350,z:0.08},'AM-L':{x:350,z:0.11},'AM-R':{x:420,z:0.11}},impact:'LW beats fullback! Cross coming!'},
+      {time:3000,ball:{x:350,z:0.06},nodes:{F9:{x:350,z:0.04},LW:{x:80,z:0.10},'AM-L':{x:340,z:0.08},'AM-R':{x:430,z:0.08}},impact:'⚡ LOW CROSS! F9 SLOTS HOME! GOAL! 🥅🔥'}
+    ];
+
+    function lerp(a,b,t){return a+(b-a)*t;}
+
+    function makeGlobal(){
+      let off=0; const g=[], phases=[bUp,pSeq,dSeq,aSeq], names=['build','press','defend','attack'];
+      phases.forEach((s,i)=>{
+        s.forEach((f,j)=>{ g.push({...f,time:off+(j===0?0:f.time),phase:names[i]}); });
+        off+=s[s.length-1].time+1000;
+      });
+      return g;
+    }
+    const globalTimeline=makeGlobal();
+    const globalTotalTime=globalTimeline[globalTimeline.length-1].time;
+
+    // ===== PLAYER DRAWING =====
+    function drawPlayer(cx,cy,radius,isUser,isTeam,label,runPhase){
+      if(radius<3) return;
+      ctx.save();
+      // Shadow
+      ctx.beginPath();
+      ctx.ellipse(cx+radius*0.2,cy+radius*0.6,radius*0.8,radius*0.2,0,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.fill();
+      // Body
+      const g=ctx.createRadialGradient(cx-radius*0.2,cy-radius*0.3,0,cx,cy,radius);
+      if(isUser){ g.addColorStop(0,'#FFE4A0'); g.addColorStop(0.5,'#D4AF37'); g.addColorStop(1,'#B8860B'); }
+      else if(isTeam){ g.addColorStop(0,'#E2E8F0'); g.addColorStop(0.5,'#CBD5E1'); g.addColorStop(1,'#94A3B8'); }
+      else{ g.addColorStop(0,'rgba(255,255,255,0.12)'); g.addColorStop(1,'rgba(255,255,255,0.04)'); }
+      ctx.beginPath(); ctx.arc(cx,cy,radius,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill();
+      const bc=isUser?'#F59E0B':(isTeam?'#64748B':'rgba(255,255,255,0.25)');
+      ctx.strokeStyle=bc; ctx.lineWidth=isUser?3:2; ctx.stroke();
+      // Head
+      const hR=radius*0.35, hY=cy-radius*0.7-hR*0.4;
+      ctx.beginPath(); ctx.arc(cx,hY,hR,0,Math.PI*2);
+      ctx.fillStyle=isUser?'#FFE4A0':(isTeam?'#E2E8F0':'rgba(255,255,255,0.1)');
+      ctx.fill(); ctx.strokeStyle=bc; ctx.lineWidth=1.5; ctx.stroke();
+      // Legs
+      if(runPhase!==undefined){
+        const len=radius*0.6, sw=Math.sin(runPhase)*radius*0.25;
+        ctx.strokeStyle=isUser?'#8B6914':'#64748B'; ctx.lineWidth=2.5; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(cx-radius*0.2,cy+radius*0.2); ctx.lineTo(cx-radius*0.2+sw,cy+len); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+radius*0.2,cy+radius*0.2); ctx.lineTo(cx+radius*0.2-sw,cy+len); ctx.stroke();
+      }
+      // Pulse ring for user
+      if(isUser){
+        const p=Math.sin(opponentSway*3)*0.2+0.8;
+        ctx.beginPath(); ctx.arc(cx,cy,radius*1.6*p,0,Math.PI*2);
+        ctx.strokeStyle='rgba(212,175,55,0.25)'; ctx.lineWidth=2; ctx.setLineDash([3,6]); ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.fillStyle=isUser?'#FFE4A0':(isTeam?'#FFF':'rgba(255,255,255,0.35)');
+      ctx.font=`bold ${Math.round(radius*0.65)}px system-ui`;
+      ctx.textAlign='center'; ctx.fillText(label,cx,hY-hR-3);
+      ctx.restore();
+    }
+
+    // ===== SOCCER BALL =====
+    function drawBall(cx,cy,r,rot){
+      if(r<2) return;
+      // Shadow
+      ctx.beginPath();
+      ctx.ellipse(cx+r*0.3,cy+r*0.8,r*0.9,r*0.2,rot*0.1,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fill();
+      // Base
+      const g=ctx.createRadialGradient(cx-r*0.3,cy-r*0.3,r*0.1,cx,cy,r);
+      g.addColorStop(0,'#FFF'); g.addColorStop(0.8,'#F0F0F0'); g.addColorStop(1,'#D0D0D0');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      const pR=r*0.35;
+      ctx.fillStyle='#1a1a2e'; ctx.strokeStyle='#444'; ctx.lineWidth=0.8;
+      // Center pentagon
+      ctx.beginPath();
+      for(let i=0;i<5;i++){ const a=(i*2*Math.PI/5)-Math.PI/2+rot; const px=cx+pR*Math.cos(a),py=cy+pR*Math.sin(a); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // Surrounding pentagons
+      for(let j=0;j<5;j++){
+        const a=(j*2*Math.PI/5)-Math.PI/2+rot, px=cx+r*0.72*Math.cos(a), py=cy+r*0.72*Math.sin(a);
+        ctx.beginPath();
+        for(let i=0;i<5;i++){ const aa=(i*2*Math.PI/5)-Math.PI/2+rot*0.5; const sx=px+r*0.28*Math.cos(aa), sy=py+r*0.28*Math.sin(aa); if(i===0)ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy); }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+      // Connectors
+      ctx.strokeStyle='#555'; ctx.lineWidth=0.6;
+      for(let j=0;j<5;j++){
+        const a1=(j*2*Math.PI/5)-Math.PI/2+rot, a2=((j+1)*2*Math.PI/5)-Math.PI/2+rot;
+        ctx.beginPath(); ctx.moveTo(cx+pR*Math.cos(a1),cy+pR*Math.sin(a1)); ctx.lineTo(cx+r*0.72*Math.cos(a2),cy+r*0.72*Math.sin(a2)); ctx.stroke();
+      }
+      ctx.shadowColor='#F59E0B'; ctx.shadowBlur=r*2;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='rgba(245,158,11,0.12)'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.shadowBlur=0;
+    }
+
+    // ===== ANIMATION =====
+    function startAnim(seq,isGlobal){
+      stopAnim(); isAnimating=true;
+      const st=performance.now(), total=seq[seq.length-1].time;
+      function anim(ct){
+        if(!isAnimating){ drawScene(); return; }
+        let t=ct-st;
+        if(!isGlobal){ if(t>=total){ applyFrame(seq[seq.length-1]); drawScene(); isAnimating=false; return; } }
+        else t=t%globalTotalTime;
+        const sq=isGlobal?globalTimeline:seq;
+        let a=sq[0],b=sq[0],p=0,found=false;
+        for(let i=0;i<sq.length-1;i++){ if(t>=sq[i].time&&t<sq[i+1].time){ a=sq[i]; b=sq[i+1]; const dt=sq[i+1].time-sq[i].time; p=dt>0?(t-sq[i].time)/dt:0; found=true; break; } }
+        if(!found&&t>=sq[sq.length-1].time){ a=sq[sq.length-1]; b=sq[sq.length-1]; }
+        if(isGlobal&&a.phase&&b.phase){ const np=p<0.5?a.phase:b.phase; if(np&&np!==activePhase){ activePhase=np; document.querySelectorAll('.phase-btn[data-phase]').forEach(b=>b.classList.toggle('active',b.dataset.phase===activePhase)); } }
+        // Interpolate ball
+        if(a.ball&&b?.ball){ const nb={x:lerp(a.ball.x,b.ball.x,p),z:lerp(a.ball.z,b.ball.z,p),y:lerp(a.ball.y||0,b.ball.y||0,p)}; ballTrail.push({...nb}); if(ballTrail.length>25)ballTrail.shift(); ballPos=nb; }
+        else if(a.ball) ballPos={...a.ball,y:a.ball.y||0};
+        // Interpolate nodes
+        const all=new Set([...Object.keys(a.nodes||{}),...Object.keys(b?.nodes||{})]);
+        all.forEach(id=>{
+          const c=a.nodes?.[id], n=b?.nodes?.[id];
+          if(c&&n){ if(!nodeAnimState[id])nodeAnimState[id]={}; nodeAnimState[id].x=lerp(c.x,n.x,p); nodeAnimState[id].z=lerp(c.z,n.z,p); }
+          else if(c){ if(!nodeAnimState[id])nodeAnimState[id]={}; nodeAnimState[id].x=c.x; nodeAnimState[id].z=c.z; }
+          else if(n){ if(!nodeAnimState[id])nodeAnimState[id]={}; nodeAnimState[id].x=n.x; nodeAnimState[id].z=n.z; }
+        });
+        const cf=p<0.5?a:b;
+        if(cf.impact)updateImpact(cf.impact);
+        drawScene(); animFrame=requestAnimationFrame(anim);
+      }
+      animFrame=requestAnimationFrame(anim);
+    }
+
+    function applyFrame(f){
+      Object.entries(f.nodes||{}).forEach(([id,p])=>{ if(nodeAnimState[id]){ nodeAnimState[id].x=p.x; nodeAnimState[id].z=p.z; } });
+      if(f.ball)ballPos={x:f.ball.x,z:f.ball.z,y:f.ball.y||0};
+      if(f.impact)updateImpact(f.impact);
+    }
+
+    function stopAnim(){ isAnimating=false; if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;} }
+
+    function updateImpact(t){ impactText.textContent=t; impactBox.classList.add('highlight'); setTimeout(()=>impactBox.classList.remove('highlight'),500); }
+
+    // ===== DRAW SCENE =====
+    function drawScene(){
+      if(!ctx||!canvas) return;
+      const w=canvas.offsetWidth||700, h=canvas.offsetHeight||500;
+      canvas.width=w; canvas.height=h;
+      opponentSway+=0.02; const time=performance.now()/1000;
+      ctx.clearRect(0,0,w,h);
+
+      // Pitch gradient
+      const pg=ctx.createRadialGradient(w/2,h*0.3,0,w/2,h*0.3,w*0.8);
+      pg.addColorStop(0,'#0d5a0d'); pg.addColorStop(0.3,'#0a4a0a'); pg.addColorStop(0.7,'#073007'); pg.addColorStop(1,'#041804');
+      ctx.fillStyle=pg; ctx.fillRect(0,0,w,h);
+
+      // Grass stripes
+      ctx.fillStyle='rgba(0,0,0,0.04)';
+      for(let i=0;i<14;i++){ const yr=i/14; if(i%2===0){ const y1=getPY(yr,h), y2=getPY((i+1)/14,h), w1=getPW(yr,w), w2=getPW((i+1)/14,w); ctx.beginPath(); ctx.moveTo(w/2-w1/2,y1); ctx.lineTo(w/2+w1/2,y1); ctx.lineTo(w/2+w2/2,y2); ctx.lineTo(w/2-w2/2,y2); ctx.closePath(); ctx.fill(); }}
+
+      // Pitch outline
+      ctx.strokeStyle='rgba(5,150,105,0.5)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(getPX(0,0,w),getPY(0,h)); ctx.lineTo(getPX(1,0,w),getPY(0,h));
+      ctx.lineTo(getPX(1,1,w),getPY(1,h)); ctx.lineTo(getPX(0,1,w),getPY(1,h)); ctx.closePath(); ctx.stroke();
+
+      // Halfway
+      const halfY=getPY(0.5,h);
+      ctx.beginPath(); ctx.moveTo(getPX(0,0.5,w),halfY); ctx.lineTo(getPX(1,0.5,w),halfY); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(w/2,halfY,getPW(0.5,w)*0.18,8,0,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w/2,halfY,3,0,Math.PI*2); ctx.fillStyle='rgba(5,150,105,0.6)'; ctx.fill();
+
+      // Near penalty area (bottom = opponent goal / viewer end)
+      const drawBox=(tR,bR,frac)=>{
+        const y1=getPY(tR,h), y2=getPY(bR,h), w1=getPW(tR,w), w2=getPW(bR,w);
+        ctx.beginPath(); ctx.moveTo(w/2-w1*frac,y1); ctx.lineTo(w/2+w1*frac,y1);
+        ctx.lineTo(w/2+w2*frac,y2); ctx.lineTo(w/2-w2*frac,y2); ctx.closePath(); ctx.stroke();
+      };
+      drawBox(0.76,0.95,0.38); // big box
+      drawBox(0.84,0.95,0.20); // 6-yard
+
+      // Far penalty area (top = our defensive end)
+      drawBox(0.05,0.20,0.38);
+      drawBox(0.05,0.13,0.20);
+
+      // Goal at near end (BOTTOM = opponent goal where we attack)
+      const gY=getPY(0.94,h), gW=getPW(0.94,w)*0.20;
+      ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(w/2-gW,gY); ctx.lineTo(w/2-gW,gY-18); ctx.lineTo(w/2+gW,gY-18); ctx.lineTo(w/2+gW,gY); ctx.stroke();
+      // Net
+      ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=0.5;
+      for(let i=0;i<7;i++){ const nx=w/2-gW+(i/6)*gW*2; ctx.beginPath(); ctx.moveTo(nx,gY-16); ctx.lineTo(nx+2,gY); ctx.stroke(); }
+
+      // Ball trail
+      if(ballTrail.length>2){
+        for(let i=1;i<ballTrail.length;i++){
+          const pt=ballTrail[i], p=proj(pt.x,pt.z,w,h);
+          const a=(i/ballTrail.length)*0.4;
+          ctx.beginPath(); ctx.arc(p.sx,p.sy,2+pt.z*3,0,Math.PI*2);
+          ctx.fillStyle=`rgba(245,158,11,${a*0.25})`; ctx.fill();
+        }
+      }
+
+      // Passing lanes
+      let lanes=[];
+      if(activePhase==='build') lanes=[['GK','CB-L'],['GK','CB-R'],['CB-L','CB-R'],['CB-L','CDM'],['CB-R','CDM'],['CB-L','LB'],['CB-R','RB']];
+      else if(activePhase==='press') lanes=[['F9','CDM'],['AM-L','CDM'],['AM-R','CDM'],['LW','F9'],['RW','F9']];
+      else if(activePhase==='defend') lanes=[['CDM','CB-L'],['CDM','CB-R'],['LB','CB-L'],['RB','CB-R']];
+      else if(activePhase==='attack') lanes=[['CDM','F9'],['F9','LW'],['F9','RW'],['AM-L','LW'],['AM-R','RW'],['LW','F9'],['RW','F9']];
+
+      ctx.strokeStyle='rgba(212,175,55,0.2)'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+      lanes.forEach(([f,t])=>{
+        const pf=nodeAnimState[f]||nodePositions[f], pt=nodeAnimState[t]||nodePositions[t];
+        if(!pf||!pt) return;
+        const fP=proj(pf.x,pf.z,w,h), tP=proj(pt.x,pt.z,w,h);
+        ctx.beginPath(); ctx.moveTo(fP.sx,fP.sy); ctx.lineTo(tP.sx,tP.sy); ctx.stroke();
+        const mx=(fP.sx+tP.sx)/2, my=(fP.sy+tP.sy)/2;
+        const ang=Math.atan2(tP.sy-fP.sy,tP.sx-fP.sx);
+        ctx.beginPath(); ctx.moveTo(mx-3,my-2); ctx.lineTo(mx+3,my); ctx.lineTo(mx-3,my+2); ctx.fillStyle='rgba(212,175,55,0.2)'; ctx.fill();
+      });
+      ctx.setLineDash([]);
+
+      // Opponents
+      opponentKeys.forEach((id,idx)=>{
+        const pos=opponentPositions[id], anim=opponentAnimState[id];
+        const pz=anim?anim.z:pos.z, px=anim?anim.x:pos.x;
+        const p=proj(px,pz,w,h);
+        const sway=Math.sin(opponentSway+idx*1.2)*3*p.scale;
+        const swayY=Math.cos(opponentSway*0.7+idx*0.9)*2*p.scale;
+        drawPlayer(p.sx+sway,p.sy+swayY,10*p.scale,false,false,id.replace('OPP-',''),undefined);
+      });
+
+      // Our team
+      Object.entries(nodePositions).forEach(([id,base])=>{
+        const anim=nodeAnimState[id], pz=anim?anim.z:base.z, px=anim?anim.x:base.x;
+        const p=proj(px,pz,w,h);
+        const isUser=(id===currentRole)&&!globalModeActive;
+        const isGlobalUser=globalModeActive&&id===currentRole;
+        const r=(isUser||isGlobalUser?14:10)*p.scale;
+        drawPlayer(p.sx,p.sy,r,isUser||isGlobalUser,!(isUser||isGlobalUser),id,time*4+id.charCodeAt(0));
+      });
+
+      // Ball - DRAWN ON TOP, IN FRONT OF PLAYERS
+      if(ballPos){
+        const p=proj(ballPos.x,ballPos.z,w,h);
+        const br=9*p.scale, rot=time*3;
+        ctx.shadowColor='#F59E0B'; ctx.shadowBlur=30*p.scale;
+        drawBall(p.sx,p.sy-(ballPos.y||0)*p.scale*25,br,rot);
+        ctx.shadowBlur=0;
+        // Pulse
+        const pulse=Math.sin(time*5)*0.3+0.7;
+        ctx.beginPath(); ctx.arc(p.sx,p.sy,br*2.5*pulse,0,Math.PI*2);
+        ctx.fillStyle=`rgba(245,158,11,${0.05*pulse})`; ctx.fill();
+        // Forward arrow (ball moves toward opponent goal = downward on screen)
+        ctx.strokeStyle='rgba(245,158,11,0.2)'; ctx.lineWidth=2; ctx.setLineDash([4,6]);
+        ctx.beginPath(); ctx.moveTo(p.sx,p.sy+br); ctx.lineTo(p.sx,p.sy+br+25*p.scale); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(p.sx-3,p.sy+br+20*p.scale); ctx.lineTo(p.sx,p.sy+br+28*p.scale); ctx.lineTo(p.sx+3,p.sy+br+20*p.scale);
+        ctx.strokeStyle='rgba(245,158,11,0.3)'; ctx.lineWidth=1.5; ctx.stroke();
+      }
+
+      // HUD
+      const labels={build:'🏗️ BUILD-UP',press:'⚡ PRESS',defend:'🛡️ DEFEND',attack:'🔥 ATTACK'};
+      ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.roundRect(8,8,150,24,5); ctx.fill();
+      ctx.fillStyle='#D4AF37'; ctx.font='bold 11px system-ui'; ctx.textAlign='left';
+      ctx.fillText(labels[activePhase]||activePhase,14,25);
+      if(globalModeActive){
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.roundRect(w/2-110,8,220,24,5); ctx.fill();
+        ctx.fillStyle='#F59E0B'; ctx.font='bold 11px system-ui'; ctx.textAlign='center';
+        ctx.fillText('⚡ FULL ENGINE ⚡',w/2,25);
+      }
+      // Direction indicator
+      ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.font='10px system-ui'; ctx.textAlign='center';
+      ctx.fillText('▼ ATTACKING ▼',w/2,h-4);
+    }
+
+    // roundRect polyfill
+    if(!CanvasRenderingContext2D.prototype.roundRect){
+      CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+        if(r>w/2)r=w/2; if(r>h/2)r=h/2;
+        this.moveTo(x+r,y); this.lineTo(x+w-r,y); this.quadraticCurveTo(x+w,y,x+w,y+r);
+        this.lineTo(x+w,y+h-r); this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+        this.lineTo(x+r,y+h); this.quadraticCurveTo(x,y+h,x,y+h-r);
+        this.lineTo(x,y+r); this.quadraticCurveTo(x,y,x+r,y);
+      };
+    }
+
+    // ===== UI =====
+    function buildGrid(){
+      positionGrid.innerHTML='';
+      positions.forEach(p=>{
+        const b=document.createElement('button');
+        b.className='pos-btn'; b.innerHTML=`<span class="pos-icon">${p.icon}</span><span class="pos-label">${p.label}<br><small class="pos-number">${p.number}</small></span>`;
+        b.addEventListener('click',()=>selectPos(p.id)); positionGrid.appendChild(b);
+      });
+    }
+
+    function selectPos(id){
+      stopAnim(); currentRole=id; globalModeActive=false;
+      globalModeBtn.classList.remove('active'); globalModeBtn.textContent='🌐 Full Team Engine';
+      activePhase='build';
+      document.querySelectorAll('.phase-btn[data-phase]').forEach(b=>b.classList.toggle('active',b.dataset.phase===activePhase));
+      updateDash();
+      selectorView.classList.add('hidden'); dashboardView.classList.add('active');
+      resetNodes(); resetBall(); drawScene();
+    }
+
+    function resetNodes(){
+      nodeAnimState={}; Object.entries(nodePositions).forEach(([id,p])=>{nodeAnimState[id]={x:p.x,z:p.z};});
+      opponentAnimState={}; Object.entries(opponentPositions).forEach(([id,p])=>{opponentAnimState[id]={x:p.x,z:p.z};});
+      opponentSway=0; ballTrail=[];
+    }
+    function resetBall(){ballPos={x:350,z:0.85,y:0}; ballTrail=[];}
+
+    function getTD(role,phase){
+      const d={
+        build:{GK:{instruction:'Play short 1-2 with CBs. Draw opponent forward. Look for #6.',impact:'GK baiting press creates midfield space.'},
+          'CB-L':{instruction:'Circulate with GK/CB-R. If #6 marked, split to inverting LB.',impact:'CB triggers escape route.'},
+          'CB-R':{instruction:'Same buildup. When blocked, ping diagonal to RB.',impact:'Right overload.'},
+          LB:{instruction:'Stay deep, then invert into half-space. Receive, carry, attract, slip to #6.',impact:'Inverted FB bypasses press.'},
+          RB:{instruction:'Push into midfield as double pivot with #6.',impact:'RB creates RW isolation.'},
+          CDM:{instruction:'Central pivot. Use FB movement as screen. Find pocket, switch play.',impact:'Metronome connecting defense to attack.'},
+          'AM-L':{instruction:'Between lines. Show for ball, turn, feed LB or LW.',impact:'Numerical superiority in half-space.'},
+          'AM-R':{instruction:'Right channel. Receive on turn, drive or combine with RW.',impact:'Draws defenders for RW space.'},
+          LW:{instruction:'Extreme width. Wait for overload, receive isolated switch.',impact:'Primary 1v1 outlet.'},
+          RW:{instruction:'Stay wide. Central overload creates isolation.',impact:'Positioned for explosive 1v1.'},
+          F9:{instruction:'Drop deep. Receive, turn, distribute wide to wingers.',impact:'Creates superiority, disrupts shape.'}},
+        press:{GK:{instruction:'Sweeper mode. Push up, cut lanes. Claim long balls.',impact:'11th outfield player.'},
+          'CB-L':{instruction:'Step up. Surround ball with nearest 5. No gaps.',impact:'High line suffocates.'},
+          'CB-R':{instruction:'Press in unison. Force to touchline trap.',impact:'Coordinated press wins ball.'},
+          LB:{instruction:'Counter-press RWB. Use touchline as defender.',impact:'Traps opponent.'},
+          RB:{instruction:'Press inside, cut passing lanes.',impact:'Triggers flank trap.'},
+          CDM:{instruction:'Lead press! Cut lane to striker. 5 converge in 6 seconds.',impact:'Orchestrates suffocating press.'},
+          'AM-L':{instruction:'Jump nearest opponent. Full intensity 6s.',impact:'Recovers in dangerous areas.'},
+          'AM-R':{instruction:'Press CB, force rushed clearance.',impact:'Forces errors.'},
+          LW:{instruction:'Track back. Double-team with LB.',impact:'Wins ball advanced.'},
+          RW:{instruction:'Immediate chase. Win ball or tactical foul.',impact:'Prevents counter.'},
+          F9:{instruction:'First defender. Charge at ball carrier.',impact:'Forces panic clearances.'}},
+        defend:{GK:{instruction:'Organize 5-back. Communicate. Position for crosses.',impact:'Marshals compact unit.'},
+          'CB-L':{instruction:'Compact 5-back. CDM drops between. Shift as unit.',impact:'Anchors low block.'},
+          'CB-R':{instruction:'Shift centrally. Maintain disciplined line.',impact:'Denies penetration.'},
+          LB:{instruction:'Tuck inside as auxiliary CB. Back five.',impact:'Becomes 3rd CB.'},
+          RB:{instruction:'Tuck inside. Complete back five.',impact:'Solidifies structure.'},
+          CDM:{instruction:'Drop between CBs. Aggressive stopper.',impact:'Completes 5-back, primary winner.'},
+          'AM-L':{instruction:'Compact midfield. Block passing lanes.',impact:'Screens defense.'},
+          'AM-R':{instruction:'Shift right, stay narrow. Protect half-space.',impact:'Blocks progressive passes.'},
+          LW:{instruction:'Drop to midfield 4. Double-team winger.',impact:'Extra defensive coverage.'},
+          RW:{instruction:'Track fullback. Prevent overlaps.',impact:'Secures flank.'},
+          F9:{instruction:'Stay central. Cut supply to pivot.',impact:'Screens DM.'}},
+        attack:{GK:{instruction:'Distribute quickly. Fullbacks high.',impact:'Launches rapid counter.'},
+          'CB-L':{instruction:'Carry forward if space. Find advancing FB.',impact:'Initiates fast break.'},
+          'CB-R':{instruction:'Support attack. Balance.',impact:'Recycling option.'},
+          LB:{instruction:'Overlap/invert. Low-driven cross.',impact:'Auxiliary winger.'},
+          RB:{instruction:'Advance high. Combine with RW. Cross/cut.',impact:'Provides width.'},
+          CDM:{instruction:'Arrive late for cutbacks. Shield defense.',impact:'Anchors, prevents counter.'},
+          'AM-L':{instruction:'CRASH BOX! Decoy runs to drag CBs.',impact:'Creates LW space.'},
+          'AM-R':{instruction:'Attack far post. Time runs.',impact:'Goal threat from midfield.'},
+          LW:{instruction:'Isolated 1v1. Burst past. Low cross/cut inside.',impact:'Primary creator.'},
+          RW:{instruction:'Receive switch. Take on FB. Finish/cross.',impact:'High-quality chance.'},
+          F9:{instruction:'Drop, turn, through ball. Sprint into box.',impact:'Creates AND finishes.'}}
+      };
+      return d[phase]?.[role]||{instruction:'Execute your role.',impact:'Every position contributes.'};
+    }
+
+    function updateDash(){
+      const p=positions.find(p=>p.id===currentRole)||positions[0];
+      roleIconLarge.textContent=p.icon; roleTitle.textContent=p.label; roleSubtitle.textContent=p.number;
+      const td=getTD(currentRole,activePhase);
+      instructionText.textContent=td.instruction; impactText.textContent=td.impact; impactBox.classList.remove('highlight');
+    }
+
+    function toggleGlobal(){
+      globalModeActive=!globalModeActive;
+      if(globalModeActive){
+        globalModeBtn.classList.add('active'); globalModeBtn.textContent='🛑 Stop';
+        resetNodes(); ballTrail=[]; startAnim(globalTimeline,true);
+      } else {
+        globalModeBtn.classList.remove('active'); globalModeBtn.textContent='🌐 Full Team Engine';
+        stopAnim(); activePhase='build';
+        document.querySelectorAll('.phase-btn[data-phase]').forEach(b=>b.classList.toggle('active',b.dataset.phase===activePhase));
+        resetNodes(); resetBall(); updateDash(); drawScene();
+      }
+    }
+
+    // ===== EVENTS =====
+    backBtn.addEventListener('click',()=>{
+      stopAnim(); globalModeActive=false; globalModeBtn.classList.remove('active'); globalModeBtn.textContent='🌐 Full Team Engine';
+      dashboardView.classList.remove('active'); selectorView.classList.remove('hidden');
+    });
+
+    phaseToggles.addEventListener('click',e=>{
+      const btn=e.target.closest('.phase-btn');
+      if(!btn) return;
+      if(btn.id==='globalModeBtn'){ toggleGlobal(); return; }
+      if(btn.dataset.phase){
+        if(globalModeActive){ globalModeActive=false; globalModeBtn.classList.remove('active'); globalModeBtn.textContent='🌐 Full Team Engine'; }
+        stopAnim(); activePhase=btn.dataset.phase;
+        document.querySelectorAll('.phase-btn[data-phase]').forEach(b=>b.classList.toggle('active',b.dataset.phase===activePhase));
+        resetNodes(); resetBall(); updateDash();
+        const seqs={build:bUp,press:pSeq,defend:dSeq,attack:aSeq};
+        startAnim(seqs[activePhase],false);
+      }
+    });
+
+    // ===== INIT =====
+    function init(){
+      buildGrid();
+      document.querySelectorAll('.phase-btn[data-phase]').forEach(b=>b.classList.toggle('active',b.dataset.phase===activePhase));
+      resetNodes(); resetBall();
+      if(canvas){ canvas.width=canvas.offsetWidth||700; canvas.height=canvas.offsetHeight||500; drawScene(); }
+      // Responsive resize
+      let resizeTimer;
+      window.addEventListener('resize',()=>{
+        clearTimeout(resizeTimer);
+        resizeTimer=setTimeout(()=>{ if(canvas){ canvas.width=canvas.offsetWidth||700; canvas.height=canvas.offsetHeight||500; drawScene(); }},100);
+      });
+      // Orientation change for mobile
+      window.addEventListener('orientationchange',()=>{
+        setTimeout(()=>{ if(canvas){ canvas.width=canvas.offsetWidth||700; canvas.height=canvas.offsetHeight||500; drawScene(); }},300);
+      });
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>]]>
